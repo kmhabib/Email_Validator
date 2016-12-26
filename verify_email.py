@@ -13,7 +13,7 @@ def open_emails(fname):
 
 	email_list = []
 	with open(fname, 'rb') as csvfile:
-		emailreader = csv.reader(csvfile)
+		emailreader = csv.reader(csvfile, dialect='excel')
 		for row in emailreader:
 			if any("@" in s for s in row):
 				if re.match(r'.*(gmail|yahoo|msn).*',row[0]):
@@ -98,7 +98,7 @@ def write_verified( validated_emails):
 #write to interesting_emails file
 def write_interesting(interesting_emails):
 	timestr = time.strftime("%Y%m%d-%H%M%S")
-        fname = "interesting_emails_" + timestr + ".csv"
+	fname = "interesting_emails_" + timestr + ".csv"
 	with open(os.path.join("output_files",fname), 'wb') as csvfile:
 		emailwriter = csv.writer(csvfile, dialect='excel')
 		for row in interesting_emails:
@@ -108,9 +108,9 @@ def main(fname1):
 	email_list = open_emails(fname1) 	
 	validated_emails,interesting_emails = connect_validate(email_list)
         #write_verified(fname2, validated_emails)
-        write_verified( validated_emails)
+	write_verified( validated_emails)
         #write_interesting(fname3, interesting_emails)
-        write_interesting(interesting_emails)
+	write_interesting(interesting_emails)
 
 if __name__ == '__main__':
 	main(sys.argv[1])
