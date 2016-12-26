@@ -1,0 +1,65 @@
+import csv
+import dns.resolver
+import re
+import socket
+import smtplib
+import numpy
+
+
+email_list = []
+validated_emails = []
+interesting_emails = []
+def open_emails(fname):
+
+	with open('pview.csv', 'rb') as csvfile:
+		emailreader = csv.reader(csvfile)
+		for row in emailreader:
+			if any("@" in s for s in row):
+				if re.match(r'.*(gmail|yahoo|msn).*',row[0]):
+					pass
+				else:
+					email_list.append(', '.join(row)) 
+return email_list
+
+
+for email in email_list:
+	username,domain = email.split('@')
+        #print("user,domain", username,domain)
+	records = dns.resolver.query(domain, 'MX')
+	mxRecord = records[0].exchange
+	mxRecord = str(mxRecord)
+
+	# Get local server hostname
+	host = socket.gethostname()
+
+	# SMTP lib setup (use debug level for full output)
+	server = smtplib.SMTP()
+	server.set_debuglevel(0)
+
+	# SMTP Conversation
+	server.connect(mxRecord)
+	server.helo(host)
+	server.mail('verify@verified.com')
+	code, message = server.rcpt(str(email))
+	server.quit()
+	# Assume 250 as Success
+	if code == 250:
+		print('Success')
+		validated_emails.append(email)
+	else:
+		#interesting_emails = numpy.array([[email,code,message]])
+		interesting_emails.append(email+" "+ str(code) + " " +message)
+
+
+#print interesting_emails
+
+with open('verified_emails.csv', 'wb') as csvfile2:
+	emailwriter = csv.writer(csvfile2, dialect='excel')
+	emailwriter.writerow(validated_emails)
+	
+with open('interesting_emails.csv', 'wb') as csvfile:
+	emailwriter = csv.writer(csvfile, dialect='excel')
+	for row in interesting_emails:
+		emailwriter.writerow([row])
+	
+
